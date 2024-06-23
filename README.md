@@ -30,7 +30,7 @@ Liquid chromatography coupled with tandem mass spectrometry (LC-MS) is a powerfu
 
 * MassKG has been implemented at https://xomics.com.cn/masskg
 * The chemical lauguage model please refer to https://github.com/skinnider/low-data-generative-models
-* Compelete TMAP of MassKG NP space ([Google Drive](https://drive.google.com/drive/folders/1U_ne24Be8vxwLpBZ_BHa-idXMowl0KMj))
+* Complete TMAP of MassKG NP space ([Google Drive](https://drive.google.com/drive/folders/1U_ne24Be8vxwLpBZ_BHa-idXMowl0KMj))
 ## About
 Should you have any questions, please feel free to contact the author of the manuscript, Mr. Bingjie Zhu (zhubj@zju.edu.cn).
 

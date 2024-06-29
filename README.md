@@ -14,7 +14,7 @@ MassKG is a knowledge-based computational tool for annotating mass spectra of na
 
 ## Requirements and Installation
 This toolkit is written in Python programming languages. 
-### Installation of SpaTrio (Python package)
+### Installation of MassKG (Python package)
 
 [![faerun 0.4.7](https://img.shields.io/badge/faerun-0.4.7-blue)](https://pypi.org/project/faerun/0.4.7/) [![matplotlib 3.5.3](https://img.shields.io/badge/matplotlib-3.5.3-green)](https://github.com/matplotlib/matplotlib/) [![multiprocess 0.70.15](https://img.shields.io/badge/multiprocess-0.70.15-yellowgreen)](https://pypi.org/project/multiprocess/0.70.15/) [![numpy 1.21.3](https://img.shields.io/badge/numpy-1.21.3-yellow)](https://github.com/numpy/numpy/) [![openpyxl 3.1.2](https://img.shields.io/badge/openpyxl-3.1.2-orange)](https://pypi.org/project/openpyxl/3.1.2/) [![pandas 1.3.5](https://img.shields.io/badge/pandas-1.3.5-ff69b4)](https://github.com/pandas-dev/pandas/) [![scipy 1.7.3](https://img.shields.io/badge/scipy-1.7.3-purple)](https://github.com/scipy/scipy/) [![seaborn 0.12.2](https://img.shields.io/badge/seaborn-0.12.2-9cf)](https://github.com/mwaskom/seaborn/) [![tmap 1.0.6](https://img.shields.io/badge/tmap-1.0.6-inactive)](https://pypi.org/project/tmap/1.0.6/) [![torch 1.13.1+cu117](https://img.shields.io/badge/torch-1.13.1%2Bcu117-blueviolet)](https://pytorch.org/) [![rdkit 2023.3.2](https://img.shields.io/badge/rdkit-2023.3.2-lightgrey)](https://www.rdkit.org/) [![scikit-learn 1.0.2](https://img.shields.io/badge/scikit--learn-1.0.2-brown)](https://github.com/scikit-learn/scikit-learn/)
 

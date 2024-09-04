@@ -72,11 +72,6 @@ def compare_isotope(measured, expected, tolerance=5e-3):
     return score 
 
 def re_formula(fm):
-    """
-    分子式修饰，将分子式整理为字母+数字形式。元素有两种表示形式
-    1）单个大写字母
-    2）大写+小写
-    """
     re_sym = []
     sym = re.findall('[A-Z][a-z]*\d*',fm)
     for s in sym:
@@ -89,13 +84,13 @@ def re_formula(fm):
 def formula_jis(fm1,fm2,mode='-'):
     import re
     import numpy as np
-    #前提是分子式均为str变量
+
     if type(fm1) is str and type(fm2) is str:
         fm1 = re_formula(fm1)
         fm2 = re_formula(fm2)
         symbols1 = re.findall("\D+", fm1)
         atom_counts1 = [int(x) for x in re.findall("\d+", fm1)]
-        #在分子式中某元素只有1个会出现不匹配问题
+    
         if len(atom_counts1) < len(symbols1):
             atom_counts1.append(1)
         symbols2 = re.findall("\D+", fm2)
@@ -103,7 +98,6 @@ def formula_jis(fm1,fm2,mode='-'):
         if len(atom_counts2) < len(symbols2):
             atom_counts2.append(1)
         # ast1 = [s in symbols1 for s in symbols2]
-        #设定好元素的种类及顺序
         all_k = ['C','H','O','N','P','S','Cl','Na','K','+','-']
         # assert set(symbols1).issubset(all_k),'{} Not in set'.format(fm1)
         # assert set(symbols2).issubset(all_k),'{} Not in set'.format(fm2)
@@ -113,7 +107,7 @@ def formula_jis(fm1,fm2,mode='-'):
             return None
         dic1 = dict()
         dic2 = dict()
-        # zip有问题
+
         for s in all_k:
             if s in symbols1:
                 a = atom_counts1[symbols1.index(s)]
@@ -130,7 +124,7 @@ def formula_jis(fm1,fm2,mode='-'):
             res = np.array(list(dic1.values())) - np.array(list(dic2.values()))
         elif mode == '+':
             res = np.array(list(dic1.values())) + np.array(list(dic2.values()))
-        #加减片段分开
+
         out_pos = []
         out_neg = []
         for s,a in zip(all_k,res):
@@ -192,9 +186,7 @@ def get_formula(mode,mass,adduct=None,mDa=5,ppm=10,elements = ['C','H','O','N','
         clean_err = []
         ms_er_score = []
         for f,p in zip(formulas,ms_errors):
-            # 获取所有元素
             e1 = re.findall('[A-Z][a-z]*',f)
-            # 确定e1是要求元素集合的子集
             if len(set(e1).union(set(elements))) == len(elements):
                 s = np.e**(-0.5*(p/mDa)**2)
                 clean_fm.append(f)
@@ -255,53 +247,6 @@ def cal_exactmass(formula):
     else:
         return  0
     
-# formulaDB = pd.read_csv(r'Source/MSFormuladb.csv')
-# calc_mz = [cal_exactmass(f) for f in formulaDB['Formula']]
-# formulaDB['calc_mz'] = calc_mz
-# formulaDB.to_csv(r'Source/MSFormuladb.csv',index=False)
-
-# formulaDB = pd.read_excel(r'Source/MassKGdatabaseS2.xlsx')
-# formulaDB = formulaDB['Molecular_Formula'].drop_duplicates()
-# calc_mz = []
-# for f in formulaDB:
-#     try:
-#         _ = cal_exactmass(f) 
-#         calc_mz.append(_)
-#     except Exception as e:
-#         calc_mz.append(0)
-# formulaDB = pd.concat([formulaDB,pd.Series(calc_mz)],axis=1)
-# formulaDB.columns = ['Formula','calc_mz']
-# formulaDB.to_csv(r'Source/MSFormuladb_cnt.csv',index=False)
-
-
-# formulaDB = pd.read_csv(r'Source/MSFormuladb_cnt.csv')
-# formulaDB = formulaDB[formulaDB['calc_mz']<=1500].reset_index(drop=True)
-# formulaDB.to_csv(r'Source/MSFormuladb_cnt.csv',index=False)
-# calc_mz = formulaDB['calc_mz']
-
-# calc_mz = [str(a) for a in calc_mz]
-# fst = []
-# scd = []
-# for a in calc_mz:
-#     _ =a.split(".")
-#     if len(_)==2:
-#         fst.append(eval(_[0][0]))
-#         scd.append(eval(_[1][0]))
-#     else:
-#         fst.append(eval(_[0][0]))
-#         scd.append(0)
-
-
-
-
-
-
-# from sklearn.cross_decomposition import PLSRegression
-# from sklearn.model_selection import cross_validate
-# plsr = PLSRegression()
-# cross_validate(plsr, X=fst,y=scd)
-
-
 
 def get_formula2(mode,rt,mass,ms2,ms1table,formuladb,mDa=5,ppm=10,binsize=100,rt_diff=0.05):
     '''
@@ -340,9 +285,7 @@ def get_formula2(mode,rt,mass,ms2,ms1table,formuladb,mDa=5,ppm=10,binsize=100,rt
         clean_err = []
         ms_er_score = []
         for f,p in zip(formulas,ms_errors):
-            # 获取所有元素
             e1 = re.findall('[A-Z][a-z]*',f)
-            # 确定e1是要求元素集合的子集
             if len(set(e1).union(set(elements))) == len(elements):
                 s = np.e**(-0.5*(p/mDa)**2)
                 clean_fm.append(f)

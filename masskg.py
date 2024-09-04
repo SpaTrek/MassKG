@@ -8,11 +8,6 @@ from rdkit.Chem import MACCSkeys
 
 
 
-
-        
-        
-
-
 def pop_list(l):
     out = []
     for x in l :
@@ -166,9 +161,9 @@ def get_fragments0(mol,bonds_comb,adduct,mode):
         atoms_val = [[symb_val_rank[be[0]]-symb_val_rank[be[1]],symb_val_rank[be[1]]-symb_val_rank[be[0]]]for be in atoms_symb]
         # atoms_val = [[be[0]-be[1],be[1]-be[0]]for be in atoms_ms]
         val_dict = {a:b for aa,bb in zip(atoms_idx,atoms_val) for a,b in zip(aa,bb) }
-        fmol = Chem.FragmentOnBonds(mol,bd) #断裂键
+        fmol = Chem.FragmentOnBonds(mol,bd) 
         try:
-            frag_mols = Chem.GetMolFrags(fmol,asMols=True) #提取碎片分子(剔除键后) 
+            frag_mols = Chem.GetMolFrags(fmol,asMols=True) 
         except Exception as e:
             print(e)
             continue
@@ -181,18 +176,16 @@ def get_fragments0(mol,bonds_comb,adduct,mode):
         n_Hs = [sum([a.GetNumImplicitHs() for a in f.GetAtoms()]) for f in frag_mols] 
         n_ids = [re.findall("\d+#0",s) for s in frag_smarts]
         n_ids = [[eval(s.replace('#0','')) for s in n] for n in n_ids]
-        n_ids = [n if n else [0] for n in n_ids] # 似乎0号键不会被记录,这里补上
-        # 注意，这里是反的，O-连的是C所以O反而会是-1，所以乘以-1改回来
+        n_ids = [n if n else [0] for n in n_ids] 
         n_vals = [[-1*val_dict[s] for s in n] for n in n_ids]
         n_breaks = [len(re.findall("-.\d*#0",s))+ 2*len(re.findall("=.\d*#0",s)) for s in frag_smarts]
-        # n_breaks = [min(a,b) for a,b in zip(n_Hs,n_breaks)] # 取自由基与活泼H的最小值
+        # n_breaks = [min(a,b) for a,b in zip(n_Hs,n_breaks)]
         n_atoms = [i.GetNumAtoms() for i in frag_mols]
-        # 加减H规则，不同环境可能的方法不同，但要求所有碎片总共加减H为0
         fw = []
         ff = []
         ab = []
         for i in range(len(frag_mols)):
-            if n_charges[i] == 0: #判断是否带电
+            if n_charges[i] == 0: 
                 continue
             
             a = n_breaks[i]
@@ -202,15 +195,14 @@ def get_fragments0(mol,bonds_comb,adduct,mode):
                 if n_Hs[i] > 0: 
                     b = [0] + [-1*(j+1) for j in range(a)] + [(j+1) for j in range(a)]
                 else:
-                    b = [0] + [(j+1) for j in range(a)] #对于缺少H的基团只能得到H而无法给出
-                if min(n_atoms)>2: # 小分子特权
+                    b = [0] + [(j+1) for j in range(a)] 
+                if min(n_atoms)>2: 
                     for v in vals:
                         if v == -1:
                             b.remove(max(b))
                         elif v == 1:
                             b.remove(min(b))
             else:
-                # 小分子特权,只拿不给，如CH3 HO NH2等
                 b = [0] + [(j+1) for j in range(a)]
             ab.append(b)
         if len(ab) == 2:
@@ -221,14 +213,13 @@ def get_fragments0(mol,bonds_comb,adduct,mode):
             ab_ = itertools.product(ab[0],ab[1],ab[2],ab[3])
         else:
             continue
-        # ab_是不同碎片间所有可能的组合
         for a_b_ in ab_:
             if not sum(a_b_) == 0 :
                 continue
             fw_ = [rdMolDescriptors.CalcExactMolWt(frag_mols[i])+a_b_[i]*H for i in range(len(a_b_))]
-            # ff_ = [(frag_mols[i],'{}H'.format(i)) for i in range(len(a_b_))] # 暂时不返回碎片
+            # ff_ = [(frag_mols[i],'{}H'.format(i)) for i in range(len(a_b_))]
             ff_ = [frag_mols[i]for i in range(len(a_b_))]
-            ff_ = [Chem.MolToSmarts(f) for f in ff_]#删除断裂的键
+            ff_ = [Chem.MolToSmarts(f) for f in ff_]
             ff_ = [s.replace(p,"") for s in ff_ for p in  re.findall("..\d*#0.",s)]
             if not max(fw_)>=50:
                 continue
@@ -237,7 +228,7 @@ def get_fragments0(mol,bonds_comb,adduct,mode):
         fragments.append(ff)
         frag_weights.append(fw)
         all_bonds.append(bd)
-    frag_weights.append([rdMolDescriptors.CalcExactMolWt(mol)]) #母离子加进去)
+    frag_weights.append([rdMolDescriptors.CalcExactMolWt(mol)])
     fragments.append([Chem.MolToSmarts(mol)])
     all_bonds.append([])
     if mode == '-':
@@ -248,7 +239,6 @@ def get_fragments0(mol,bonds_comb,adduct,mode):
 
 
 def get_fragments(mol, bonds_comb, adduct, mode):
-    # 常量定义
     mass_dict = {
         'H': 1.007825,
         'Na': 22.98977,
@@ -276,8 +266,6 @@ def get_fragments(mol, bonds_comb, adduct, mode):
         atoms_symb = [[a.GetSymbol() for a in be] for be in bateat]
         atoms_symb = [[a if a in symb_val_rank else 'na' for a in be] for be in bateat]
         atoms_ms = [[a.GetMass() for a in be] for be in bateat]
-        
-        # 计算原子间的值
         atoms_val = [[symb_val_rank[be[0]] - symb_val_rank[be[1]], symb_val_rank[be[1]] - symb_val_rank[be[0]]] for be in atoms_symb]
         val_dict = {a: b for aa, bb in zip(atoms_idx, atoms_val) for a, b in zip(aa, bb)}
         
@@ -395,13 +383,9 @@ def bondscomb2(bonds1,bonds2):
 
 
 def break_all_single(mol,mode='-',adduct=''):
-    """
-    断开化合物的全部单键
-    """
     fragments = []
     frag_weigths = []
     all_bonds = [] 
-    # 获取所有脂肪单键
     chain_bonds = [b.GetIdx() for b in mol.GetBonds() if not b.IsInRing() and b.GetBondTypeAsDouble()<=2] 
     bonds_comb = chain_bonds
     if not len(bonds_comb) > 0:
@@ -415,51 +399,16 @@ def break_all2(mol,mode='-',adduct=''):
     all_bonds = []
     ri = mol.GetRingInfo() # ring information
     bonds_in_r = ri.BondRings()
-    bridge_bonds = get_bridge_bonds(bonds_in_r) #获取桥键，不断裂
+    bridge_bonds = get_bridge_bonds(bonds_in_r)
     bonds_in_r = [[b_ for b_ in b if b_ not in bridge_bonds] for b in bonds_in_r]
     
     chain_bonds = [b.GetIdx() for b in mol.GetBonds() if not b.IsInRing() and b.GetBondTypeAsDouble()<=2]
-    ring_bonds = [[[xza[i],xza[j]] for i in range(len(xza)) for j in range(i,len(xza)) if i!=j] for xza in bonds_in_r] # 换上的键需要成组断
+    ring_bonds = [[[xza[i],xza[j]] for i in range(len(xza)) for j in range(i,len(xza)) if i!=j] for xza in bonds_in_r] 
     
-    chain_comb = bondscomb2(chain_bonds,chain_bonds) # 单键+单键组合
-    ring_comb = [bondscomb2(ring_bonds[i],ring_bonds[j]) for i in range(len(ring_bonds)) for j in range(i,len(ring_bonds)) if i!=j] # 两个环的组合
-    ri_ch_comb = [bondscomb2(chain_bonds,i) for i in ring_bonds] # 生成单键+环2键组合 
+    chain_comb = bondscomb2(chain_bonds,chain_bonds)
+    ring_comb = [bondscomb2(ring_bonds[i],ring_bonds[j]) for i in range(len(ring_bonds)) for j in range(i,len(ring_bonds)) if i!=j]
+    ri_ch_comb = [bondscomb2(chain_bonds,i) for i in ring_bonds]
     
-    
-    # 整理键组
-    ring_bonds = [b for bs in ring_bonds for b in bs] 
-    ring_comb = [b for bs in ring_comb for b in bs] 
-    ri_ch_comb = [b for bs in ri_ch_comb for b in bs]
-    bonds_comb = chain_bonds + ring_bonds + chain_comb + ring_comb + ri_ch_comb
-    if not len(bonds_comb) > 0:
-        return fragments,frag_weigths,all_bonds
-    bonds_comb = pop_list(bonds_comb)
-    fragments,frag_weigths,all_bonds = get_fragments(mol,bonds_comb,adduct=adduct,mode=mode)
-    return fragments,frag_weigths,all_bonds
-
-def break_KG2(mol,bonds,mode='-',adduct=''):
-    '''
-    这个是用来做预测结果应用的
-
-    '''
-    fragments = []
-    frag_weigths = []
-    all_bonds = []
-    ri = mol.GetRingInfo() # ring information
-    bonds_in_r = ri.BondRings()
-    bridge_bonds = get_bridge_bonds(bonds_in_r) #获取桥键，不断裂
-    bonds_in_r = [[b_ for b_ in b if b_ not in bridge_bonds and b_ in bonds] for b in bonds_in_r]
-    
-    chain_bonds = [b.GetIdx() for b in mol.GetBonds() if not b.IsInRing()]
-    chain_bonds = [b for b in chain_bonds if b in bonds]
-    ring_bonds = [[[xza[i],xza[j]] for i in range(len(xza)) for j in range(i,len(xza)) if i!=j] for xza in bonds_in_r if len(xza)>1] # 换上的键需要成组断
-    
-    chain_comb = bondscomb2(chain_bonds,chain_bonds) # 单键+单键组合
-    ring_comb = [bondscomb2(ring_bonds[i],ring_bonds[j]) for i in range(len(ring_bonds)) for j in range(i,len(ring_bonds)) if i!=j] # 两个环的组合
-    ri_ch_comb = [bondscomb2(chain_bonds,i) for i in ring_bonds] # 生成单键+环2键组合 
-    
-    
-    # 整理键组
     ring_bonds = [b for bs in ring_bonds for b in bs] 
     ring_comb = [b for bs in ring_comb for b in bs] 
     ri_ch_comb = [b for bs in ri_ch_comb for b in bs]
@@ -474,7 +423,7 @@ def break_KG2(mol,bonds,mode='-',adduct=''):
 def break_t32(mol,mode='-',adduct=''):
     patterns = {
     'N': AllChem.MolFromSmarts('[#7]'),          
-    'O': AllChem.MolFromSmarts('[OD2;!R]'), # 非环醚键
+    'O': AllChem.MolFromSmarts('[OD2;!R]'), 
     'P': AllChem.MolFromSmarts('[#15;!R]'),
     'S': AllChem.MolFromSmarts('[#16;!R]'),
     'CO': AllChem.MolFromSmarts('[CX3]=O'),
@@ -484,8 +433,8 @@ def break_t32(mol,mode='-',adduct=''):
         'CH3': AllChem.MolFromSmarts('[CH3]'),
         'C':AllChem.MolFromSmarts('[#6D3]'),
         }
-    patterns3 = {'C': AllChem.MolFromSmarts('[#6D3R]-[#6R]')} # 叔C
-    ring_za = {'Cr6': AllChem.MolFromSmarts('[#6]1~[#6]~[#6]~[#6]~[#6]~[#6]~1'), # 6元C环
+    patterns3 = {'C': AllChem.MolFromSmarts('[#6D3R]-[#6R]')} 
+    ring_za = {'Cr6': AllChem.MolFromSmarts('[#6]1~[#6]~[#6]~[#6]~[#6]~[#6]~1'), 
                'Or6': AllChem.MolFromSmarts('[#6]1~[#6]~[#6]~[#6](=[#8])~[#8]~[#6]~1'),
                'Or5': AllChem.MolFromSmarts('[#6]1~[#6]~[#6](=[#8])~[#8]~[#6]~1'),
                'CO': AllChem.MolFromSmarts('[CD3]=O'),
@@ -499,26 +448,26 @@ def break_t32(mol,mode='-',adduct=''):
     # mol =  Chem.RWMol(mol)
     ri = mol.GetRingInfo() # ring information
     bonds_in_r = ri.BondRings()
-    bridge_bonds = get_bridge_bonds(bonds_in_r) #获取桥键，不断裂
-    x1 = [mol.GetSubstructMatches(p) for k,p in patterns.items()] #全部匹配
-    x2 = [mol.GetSubstructMatch(p) for k,p in patterns2.items()] #特定官能团只匹配一次
-    x3 = [mol.GetSubstructMatches(p) for k,p in patterns3.items()] # 环间叔C
-    xrza = [mol.GetSubstructMatches(p) for k,p in ring_za.items()] # 所有杂环
-    xres = [mol.GetSubstructMatch(p) for k,p in resonance.items()] # 烯醇式共振
+    bridge_bonds = get_bridge_bonds(bonds_in_r) 
+    x1 = [mol.GetSubstructMatches(p) for k,p in patterns.items()] 
+    x2 = [mol.GetSubstructMatch(p) for k,p in patterns2.items()]
+    x3 = [mol.GetSubstructMatches(p) for k,p in patterns3.items()] 
+    xrza = [mol.GetSubstructMatches(p) for k,p in ring_za.items()] 
+    xres = [mol.GetSubstructMatch(p) for k,p in resonance.items()] 
     x = [a for b in x1+x2 for a in b]
     xb = [a for b in x3 for a in b]
     xrza_ = [a for b in xrza for a in b]
     xres_ = [a for b in xres for a in b ]
     x = [a if type(a)==int else a[0] for a in x]
-    # xrza_ = [[a for a in b if mol.GetAtomWithIdx(a).GetNumImplicitHs()<=1] for b in xrza_] #杂环叔C 
+    # xrza_ = [[a for a in b if mol.GetAtomWithIdx(a).GetNumImplicitHs()<=1] for b in xrza_] 
     x = set(x)
     atoms1 = [mol.GetAtomWithIdx(i) for i in x]
     bonds1 = [at.GetBonds() for at in atoms1]
     bonds1 = [b for bs in bonds1 for b in bs]
-    bonds1 = [b for b in bonds1 if not b.IsInRing()] #不断环上键
-    bonds1 = [b for b in bonds1 if b.GetBondTypeAsDouble()==1] # 只断单键
+    bonds1 = [b for b in bonds1 if not b.IsInRing()] 
+    bonds1 = [b for b in bonds1 if b.GetBondTypeAsDouble()==1] 
     bonds3 = [mol.GetBondBetweenAtoms(b[0],b[1]) for b in xb]
-    bonds3 = [b for b in bonds3 if not b.IsInRing()] # 非环C-C
+    bonds3 = [b for b in bonds3 if not b.IsInRing()]
     bonds4 = [[mol.GetBondBetweenAtoms(at,bt) for at in a for bt in a] for a in xrza_]
     bonds4 = [[b for b in bs if b] for bs in bonds4]
     bonds4 = [[b for b in bs if b.GetBeginAtom().GetNumImplicitHs()+b.GetEndAtom().GetNumImplicitHs()<=3] for bs in bonds4]
@@ -528,31 +477,30 @@ def break_t32(mol,mode='-',adduct=''):
     bonds5 = [a.GetBonds() for a in atoms5]
     for b in bonds4:
         bonds4_.append([x for x in b if x])
-    bonds4_ = [[b for b  in bs if b.IsInRing()] for bs in bonds4_] # 杂环键
-    bonds4_ = [[b for b  in bs if b.GetBondTypeAsDouble()==1] for bs in bonds4_] # 杂环键
-    idx = [b.GetIdx() for b in bonds1+bonds3] # 获得键ID
+    bonds4_ = [[b for b  in bs if b.IsInRing()] for bs in bonds4_]
+    bonds4_ = [[b for b  in bs if b.GetBondTypeAsDouble()==1] for bs in bonds4_]
+    idx = [b.GetIdx() for b in bonds1+bonds3] 
     idx_rza = [[b.GetIdx() for b in bs] for bs in bonds4_] 
-    idx_rza = [[b for b in bs if not b in bridge_bonds] for bs in idx_rza] # 不断桥键
+    idx_rza = [[b for b in bs if not b in bridge_bonds] for bs in idx_rza] 
     idx_res = [b.GetIdx() for bs in bonds5 for b in bs] 
     
     idx2_2 = []
     idx_rza_comb = []
     idx = list(set(idx))
-    idx2_1 = bondscomb2(idx,idx) # 单键+单键组合
+    idx2_1 = bondscomb2(idx,idx) 
     if len(idx_rza)>0:
         idx_rza = [list(set(i)) for i in idx_rza if len(i)>0]
         idx_rza = pop_list(idx_rza)
-        # idx_rza = [[[xza[i],xza[j]] for i in range(len(xza)) for j in range(i,len(xza)) if i!=j] for xza in idx_rza] # 环上的键需要成组断
+        # idx_rza = [[[xza[i],xza[j]] for i in range(len(xza)) for j in range(i,len(xza)) if i!=j] for xza in idx_rza] 
         idx_rza = [bondscomb2(i,i) for i in idx_rza]
-        idx_rza_comb = [bondscomb2(idx_rza[i],idx_rza[j]) for i in range(len(idx_rza)) for j in range(i,len(idx_rza)) if i!=j] # 两个环的组合
-        idx2_2 = [bondscomb2(idx,i) for i in idx_rza ] # 生成单键+环2键组合
+        idx_rza_comb = [bondscomb2(idx_rza[i],idx_rza[j]) for i in range(len(idx_rza)) for j in range(i,len(idx_rza)) if i!=j]
+        idx2_2 = [bondscomb2(idx,i) for i in idx_rza ]
         
         idx_rza = [j for i in idx_rza for j in i]
-        idx_rza_comb = [j for i in idx_rza_comb for j in i] # 整合2键的组合
+        idx_rza_comb = [j for i in idx_rza_comb for j in i]
         idx2_2 = [j for i in idx2_2 for j in i]
-        # 如果idx_rza 有多个环的话需要将相关的bonds组合拼接起来
             
-    idx2 = idx2_1+idx2_2 # 整合有单键的组合
+    idx2 = idx2_1+idx2_2
     bonds_comb = idx + idx_rza + idx_rza_comb + idx2 + idx_res
     bonds_comb = pop_list(bonds_comb)
     if not len(bonds_comb) > 0:
@@ -699,15 +647,15 @@ def fragments_generation(smiles,mode='',t=None):
 def break_ht2(mol,mode='-',adduct='',subclass='',CH3=False):
     patterns = {
     'N': AllChem.MolFromSmarts('[#7]'),          
-    'O': AllChem.MolFromSmarts('[OD2;!R]'), # 非环醚键
+    'O': AllChem.MolFromSmarts('[OD2;!R]'),
     'P': AllChem.MolFromSmarts('[#15;!R]'),
     'S': AllChem.MolFromSmarts('[#16;!R]'),
-    'CO': AllChem.MolFromSmarts('[CX3]=O'), # 脂肪CO
+    'CO': AllChem.MolFromSmarts('[CX3]=O'),
     }
     patterns1 = {
-    'R-R': AllChem.MolFromSmarts('[#6]1(~[#6]2~[#6]~[#6]~[#6]~[#6]~[#6]~2)~[#6]~[#6]~[#6]~[#6]~[#6]~1'), # 联苯
-    'RCR': AllChem.MolFromSmarts('[#6]1(~[#6]~[#6]2~[#6]~[#6]~[#6]~[#6]~[#6]~2)~[#6]~[#6]~[#6]~[#6]~[#6]~1'), # ph-C-ph
-    'RCCR': AllChem.MolFromSmarts('[#6]1(~[#6]~[#6]~[#6]2~[#6]~[#6]~[#6]~[#6]~[#6]~2)~[#6]~[#6]~[#6]~[#6]~[#6]~1'), # ph-C-C-ph
+    'R-R': AllChem.MolFromSmarts('[#6]1(~[#6]2~[#6]~[#6]~[#6]~[#6]~[#6]~2)~[#6]~[#6]~[#6]~[#6]~[#6]~1'),
+    'RCR': AllChem.MolFromSmarts('[#6]1(~[#6]~[#6]2~[#6]~[#6]~[#6]~[#6]~[#6]~2)~[#6]~[#6]~[#6]~[#6]~[#6]~1'),
+    'RCCR': AllChem.MolFromSmarts('[#6]1(~[#6]~[#6]~[#6]2~[#6]~[#6]~[#6]~[#6]~[#6]~2)~[#6]~[#6]~[#6]~[#6]~[#6]~1'),
     }
     if CH3:
         patterns2 = {
@@ -718,18 +666,18 @@ def break_ht2(mol,mode='-',adduct='',subclass='',CH3=False):
         patterns2 = {
             'OH': AllChem.MolFromSmarts('[OX2H1]'),
             }
-    patterns3 = {'C': AllChem.MolFromSmarts('[#6D3R]-[#6R]')} # 环间叔C
+    patterns3 = {'C': AllChem.MolFromSmarts('[#6D3R]-[#6R]')} 
     patterns4 = {'char2':AllChem.MolFromSmarts('[#8]=[#6](-[#6]1:[#6]:[#6]:[#6]:[#6]:[#6]:1)/[#6]=[#6]/[#6]1:[#6]:[#6]:[#6]:[#6]:[#6]:1'),
         }
     ring_zares = {'cch':AllChem.MolFromSmarts('[#6;!R]=[#6;!R]-[#8H;!R]')
         }
-    ring_za = {'Or6': AllChem.MolFromSmarts('[#6]1~[#6]~[#6]~[#6]~[#6]~[#8]~1'), # 环醚键
-               'Or5': AllChem.MolFromSmarts('[#6]1~[#6]~[#6]~[#6]~[#8]~1'), # 环醚键
-               'CO': AllChem.MolFromSmarts('[#6D3R]=[#8]'), #环羰基
+    ring_za = {'Or6': AllChem.MolFromSmarts('[#6]1~[#6]~[#6]~[#6]~[#6]~[#8]~1'),
+               'Or5': AllChem.MolFromSmarts('[#6]1~[#6]~[#6]~[#6]~[#8]~1'), 
+               'CO': AllChem.MolFromSmarts('[#6D3R]=[#8]'),
                }
 
-    ring_res = {'xch':AllChem.MolFromSmarts('[#6]1=[#6](-[#8H])-[#6]=[#6]-[#6]=[#6]-1'), # 环上烯醇
-                'xcm':AllChem.MolFromSmarts('[#8D2;!R]-[#6]1-[#6]=[#6](-[#8D2;!R])-[#6]=[#6]-[#6]=1'), # 烯醚
+    ring_res = {'xch':AllChem.MolFromSmarts('[#6]1=[#6](-[#8H])-[#6]=[#6]-[#6]=[#6]-1'), 
+                'xcm':AllChem.MolFromSmarts('[#8D2;!R]-[#6]1-[#6]=[#6](-[#8D2;!R])-[#6]=[#6]-[#6]=1'),
                 'RDA':AllChem.MolFromSmarts('[#6]1-[#6]-[#6]-[#6]=[#6](-[#8H])[#8]-1'),
                 'RDA2':AllChem.MolFromSmarts('[#6]1-[#6]-[#6]-[#6](-[#8H])=[#6]-[#8]-1'),
                 }
@@ -739,18 +687,18 @@ def break_ht2(mol,mode='-',adduct='',subclass='',CH3=False):
     # mol =  Chem.RWMol(mol)
     ri = mol.GetRingInfo() # ring information
     bonds_in_r = ri.BondRings()
-    bridge_bonds = get_bridge_bonds(bonds_in_r) #获取桥键，不断裂
+    bridge_bonds = get_bridge_bonds(bonds_in_r)
     
     
-    x1 = [mol.GetSubstructMatches(p) for k,p in patterns.items()] #全部匹配
-    x1_ = [mol.GetSubstructMatches(p) for k,p in patterns1.items()] # 环间的特定C
-    x2 = [mol.GetSubstructMatches(p) for k,p in patterns2.items()] #特定官能团只匹配2次
+    x1 = [mol.GetSubstructMatches(p) for k,p in patterns.items()] 
+    x1_ = [mol.GetSubstructMatches(p) for k,p in patterns1.items()]
+    x2 = [mol.GetSubstructMatches(p) for k,p in patterns2.items()]
     x2 = [a[:2] for a in x2]
-    x3 = [mol.GetSubstructMatches(p) for k,p in patterns3.items()] # 环间叔C
+    x3 = [mol.GetSubstructMatches(p) for k,p in patterns3.items()] 
     x4 = [mol.GetSubstructMatches(p) for k,p in patterns4.items()]
     xrzares = [mol.GetSubstructMatches(p) for k,p in ring_zares.items()]
-    xrza = [mol.GetSubstructMatches(p) for k,p in ring_za.items()] # 所有杂环
-    xresr = [mol.GetSubstructMatches(p) for k,p in ring_res.items()] # 苯酚共振
+    xrza = [mol.GetSubstructMatches(p) for k,p in ring_za.items()]
+    xresr = [mol.GetSubstructMatches(p) for k,p in ring_res.items()] 
     x = [a for b in x1+x1_+x2 for a in b]
     x4 = [a for b in x4 for a in b]
     xb = [a for b in x3 for a in b]
@@ -761,22 +709,20 @@ def break_ht2(mol,mode='-',adduct='',subclass='',CH3=False):
     x = [a for at in x  for a in at if at]
     x = set(x)
     xrzares_ = [a for at in xrzares_  for a in at if at]
-    xrzares_ = set(xrzares_) # 没用
+    xrzares_ = set(xrzares_)
     
     atoms1 = [mol.GetAtomWithIdx(i) for i in x]
     bonds1 = [at.GetBonds() for at in atoms1]
     bonds1 = [b for bs in bonds1 for b in bs]
-    bonds1 = [b for b in bonds1 if not b.IsInRing()] #不断环上键
-    bonds1 = [b for b in bonds1 if b.GetBondTypeAsDouble()==1] # 只断单键
+    bonds1 = [b for b in bonds1 if not b.IsInRing()]
+    bonds1 = [b for b in bonds1 if b.GetBondTypeAsDouble()==1] 
     bonds3 = [mol.GetBondBetweenAtoms(b[0],b[1]) for b in xb]
-    bonds3 = [b for b in bonds3 if not b.IsInRing()] # 非环C-C
+    bonds3 = [b for b in bonds3 if not b.IsInRing()]
     atoms3 = [(b.GetBeginAtomIdx(),b.GetEndAtomIdx()) for b in bonds3]
-    atoms3 = [a for at in atoms3 for a in at] #获取环间叔C编号用于下面识别有叔C的杂环裂解
-    
-    # 下面是环上键
+    atoms3 = [a for at in atoms3 for a in at]
     xrza__ = []
     for xr in xrza_:
-        if len(xr) > 4:# 连有叔碳的杂环才可碎裂
+        if len(xr) > 4:
             if set(xr).intersection(set(atoms3)):
                 xrza__.append(xr)
         else:
@@ -790,43 +736,39 @@ def break_ht2(mol,mode='-',adduct='',subclass='',CH3=False):
     
     atoms5 = [[mol.GetAtomWithIdx(i) for i in ats] for ats in xresr_]
     # atoms5 = [[a for a in ats if a.GetSymbol()=='C' and True in [x.GetSymbol()=='O' for x in a.GetNeighbors()]] for ats in atoms5]
-    bonds5_0 = [[mol.GetBondBetweenAtoms(at,bt) for at in a for bt in a] for a in xresr_]# 苯酚共振
+    bonds5_0 = [[mol.GetBondBetweenAtoms(at,bt) for at in a for bt in a] for a in xresr_]
     bonds5_0 = [[b for b in bs if b] for bs in bonds5_0]
     # bonds5_0 = [[b for b in bs if b.GetBondTypeAsDouble()==1] for bs in bonds5_0]
     bonds5 = [[a.GetBonds() for a in at] for at in atoms5]
     bonds5 = [[b_  for b in bs for b_ in b]for bs in bonds5]
-    bonds5 = [b0+b1 for b0,b1 in zip(bonds5_0,bonds5)] # 单键+符合的双键
-    bonds5 = [[b for b in bs if b.IsInRing()] for bs in bonds5]#
-    atoms6 = [mol.GetAtomWithIdx(i) for i in x4] # 俩都是双键应该可以合并
+    bonds5 = [b0+b1 for b0,b1 in zip(bonds5_0,bonds5)] 
+    bonds5 = [[b for b in bs if b.IsInRing()] for bs in bonds5]
+    atoms6 = [mol.GetAtomWithIdx(i) for i in x4] 
     bonds6 = [at.GetBonds() for at in atoms6]
     bonds6 = [b for bs in bonds6 for b in bs]
-    bonds6 = [b for b in bonds6 if not b.IsInRing()] #不断环上键
-    bonds6 = [b for b in bonds6 if b.GetBondTypeAsDouble()==2] # 只断双键
-    # 整合b4 b5
+    bonds6 = [b for b in bonds6 if not b.IsInRing()]
+    bonds6 = [b for b in bonds6 if b.GetBondTypeAsDouble()==2] 
+
     bonds4_ = []
-    for b in bonds4+bonds5: # 合并环上键对剔除空值
+    for b in bonds4+bonds5:
         bonds4_.append([x for x in b if x])
-    # 获得键ID
-    # idx = [b.GetIdx() for b in bonds1+bonds3+bonds6]
-    idx = [b.GetIdx() for b in bonds1+bonds6] # 非环单双键[1.删除bonds3]
+   
+    idx = [b.GetIdx() for b in bonds1+bonds6] 
     idx = list(set(idx))
 
     idx_rza = [[b.GetIdx() for b in bs] for bs in bonds4_] 
-    idx_rza = [[b for b in bs if not b in bridge_bonds] for bs in idx_rza] # 不断桥键
+    idx_rza = [[b for b in bs if not b in bridge_bonds] for bs in idx_rza] 
     
     idx2_2 = []
     idx_rza_comb = []
     idx = list(set(idx))
-    idx2_1 = bondscomb2(idx,idx) # 单键+单键组合
+    idx2_1 = bondscomb2(idx,idx) 
     if len(idx_rza)>0:
         idx_rza = [list(set(i)) for i in idx_rza if len(i)>0]
         idx_rza = pop_list(idx_rza)
-        # idx_rza = [[[xza[i],xza[j]] for i in range(len(xza)) for j in range(i,len(xza)) if i!=j] for xza in idx_rza] # 换上的键需要成组断
         idx_rza = [bondscomb2(i,i) for i in idx_rza]
-        idx_rza_comb = [bondscomb2(idx_rza[i],idx_rza[j]) for i in range(len(idx_rza)) for j in range(i,len(idx_rza)) if i!=j] # 两个环的组合
-        idx2_2 = [bondscomb2(idx,i) for i in idx_rza ] # 生成单键+环2键组合
-        # idx_rza_comb = [j for i in idx_rza_comb for j in i] # 整合2键的组合
-        # 如果idx_rza 有多个环的话需要将相关的bonds组合拼接起来
+        idx_rza_comb = [bondscomb2(idx_rza[i],idx_rza[j]) for i in range(len(idx_rza)) for j in range(i,len(idx_rza)) if i!=j] 
+        idx2_2 = [bondscomb2(idx,i) for i in idx_rza ] 
         temp = []
         for b2s in idx_rza:
             temp += b2s
@@ -840,7 +782,7 @@ def break_ht2(mol,mode='-',adduct='',subclass='',CH3=False):
             temp += b2s
         idx2_2 = temp
             
-    idx2 = idx2_1+idx2_2 # 整合有单键的组合
+    idx2 = idx2_1+idx2_2
     bonds_comb = idx + idx_rza + idx_rza_comb + idx2
     bonds_comb = pop_list(bonds_comb)
     if not len(bonds_comb) > 0:

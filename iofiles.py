@@ -45,7 +45,6 @@ def sum_ms2(ms2_table,upper=100):
             else:
                 new_mz.append(np.mean(m))
                 new_int.append(np.sum(inten))
-            # 最后一循环,i是倒数2
         if i == len(ms2_table) - 2:
             if abs(mzs[i]-mzs[i+1]) < 5e-3 or abs(mzs[i]-mzs[i+1])/mzs[i] < 20e-6:
                 new_mz.append(np.mean(m))
@@ -71,9 +70,7 @@ def mgftranslator(path_mgf,maxlen=0):
     count = 0
     with open(path_mgf) as f:
         raw_data=f.readlines()# read mgf file to a list line by line
-    
-    # 判断有多少column特征需要识别
-    if re.match('BEGIN IONS',raw_data[0]): # 开始
+    if re.match('BEGIN IONS',raw_data[0]): 
         for j in range(1,len(raw_data)):
             if re.match('^\d',raw_data[j]):
                 break
@@ -87,11 +84,10 @@ def mgftranslator(path_mgf,maxlen=0):
   
     
     for i in range(len(raw_data)):
-        if re.match('BEGIN IONS',raw_data[i]): # 开始
+        if re.match('BEGIN IONS',raw_data[i]):
             values = []
             for j in range(lenz):
-                v = raw_data[i+j+1].split('=',1)[1] #取各项的值
-                # 修饰文本，删去格式符号
+                v = raw_data[i+j+1].split('=',1)[1] 
                 v = v.replace(r'\n','')
                 v = v.replace(r'\t',' ')
                 v = v.strip()
@@ -153,8 +149,7 @@ def get_ms(ms_,maxlen=20):
                     print(_) 
             temp = pd.DataFrame(m)
             temp.columns = ['mz','intensity']
-            temp = temp[temp['intensity']!=''] # 删除空值 
-            #temp['intensity'] = temp['intensity'].str.replace('','0')
+            temp = temp[temp['intensity']!='']  
             temp = temp.dropna().astype(float)
             temp = temp.sort_values(by='intensity',
                                     ascending=False).reset_index(drop=True)
@@ -170,11 +165,6 @@ columns = ['NAME','PRECURSORMZ','PRECURSORTYPE','FORMULA',
        'IONMODE','INSTRUMENTTYPE','INSTRUMENT','COLLISIONENERGY',
        'Comment','Num Peaks']
 def parse_MSDIAL(df,iso=False,maxlen=10,tolerance=5e-3,keepms2=False):
-    """
-    补充内容，由于MS-DIAL导出的excel文件存在格式错选为profile现象，导致MS2过长会错行到下一行
-    的PeakID位置，暂时只发现只会错行到下一行第一列，为解决这个问题，需要识别出异常行，拼接到上一
-    行的MS2 中。
-    """
     df_ = df.copy()
     if "Ms1" in df:
         MS1 = df_['Ms1']
@@ -205,29 +195,18 @@ def parse_MSDIAL(df,iso=False,maxlen=10,tolerance=5e-3,keepms2=False):
         feature_table.columns = ['ID','Rt','Mz','Size']
     if 'Adduct' in df_:
         feature_table = pd.concat([feature_table,df_['Adduct']],axis=1)
-    # 通过Mz是null把数据拆分成两部分，正常feature和mz错行部分
     extra_ms2 = feature_table[feature_table['Mz'].isnull()]['ID']
     feature_table = feature_table[~feature_table['Mz'].isnull()]
     
     if len(extra_ms2) > 0:
-    # MS2将下一行数据补充到上一行
         for i,m in extra_ms2.items():
             # print(i)
-            # 默认第一次错位肯定是错一行
             if type(MS2[i-1]) == str:
                 MS2[i-1] += str(m)
                 last_idx = i-1
             else:
-                # 存在连续几行peakid都是ms2的情况，逐步累加
                 MS2[last_idx] += m
-            
-                
-            
-
-    # feature_table = feature_table.dropna(subset=['Mz']).reset_index(drop=True)
-    # 剔除MS2的空值
     MS2 = MS2[feature_table.index]
-
     ms2_list = get_ms(MS2,maxlen=maxlen)
     iso_list = []
     

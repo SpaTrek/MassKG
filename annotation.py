@@ -40,7 +40,6 @@ def getmatched(truems2,predms2,mserror=20e-3,adduct='H'):
     """
     truemes and predms2 are datatables with atleast a column 'mz' and a columns 'intensity  '
     """
-    # 虚拟库默认加和方式是±H，所以要把真实样品的加和状态转化为±H
     if adduct == 'Na':
         truems2['mz'] = truems2['mz'] + 1.007825 - 22.989770
     elif adduct == 'Cl':
@@ -90,7 +89,7 @@ def assign_nl(mz_table,mode,delta=20e-3):
     """
     # mz_table = pd.DataFrame(mz_table).copy()
     # mz_table.columns = ['mz','intensity']
-    mz_table = mz_table.sort_values(by='mz',ascending=False).reset_index(drop=True) # mz逆序
+    mz_table = mz_table.sort_values(by='mz',ascending=False).reset_index(drop=True) 
     nltable = pd.read_excel(r'../Source/available_nl.xlsx',sheet_name='msnl')
     # if mode == '-':
     #     nltable = nltable[nltable['Neg'].astype(bool)]
@@ -132,7 +131,7 @@ def assign_nl(mz_table,mode,delta=20e-3):
     return res
 
 def assign_nl2(mz_table,mode,delta=10e-3):
-    mz_table = mz_table.sort_values(by='mz',ascending=False).reset_index(drop=True) # mz逆序
+    mz_table = mz_table.sort_values(by='mz',ascending=False).reset_index(drop=True) 
     nltable = pd.read_excel(r'Source/available_nl.xlsx',sheet_name='msnl')
     nltable = nltable[nltable['Frequency']>=1]
     nl_ms = nltable['Accurate Mass']
@@ -227,7 +226,6 @@ class Node:
 
         for _k, _v in self.info.items():
             result[_k] = _v
-        # 递归生成字典
         result["children"] = [x.to_dict() for x in self.children]
         return result
     
@@ -235,9 +233,9 @@ class TreeProcessor:
     def __init__(self, pair: list, info: dict, d_type="json"):
         """
 
-        :param pair: [(0, 1), (0, 2)...] 父子关系对
-        :param info: {0 : {"name": xxx}} 每个节点的详细信息
-        :param d_type: 返回类型 json dict
+        :param pair: [(0, 1), (0, 2)...] parent-child pair
+        :param info: {0 : {"name": xxx}} detailed information for each node
+        :param d_type: return type json dict
         """
         self._pair = pair
         self._info = info
@@ -246,8 +244,7 @@ class TreeProcessor:
 
     def _process_data(self):
         """
-        将[(0, 1), (0, 2)...] 父子关系对
-        变为 {father: [child, child]}
+        transfer [(0, 1), (0, 2)...] parent-child pair into {father: [child, child]}
         :return:
         """
         pair_map = defaultdict(list)

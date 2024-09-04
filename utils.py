@@ -24,7 +24,6 @@ def draw_molb(got_ms2,mollist,savepath,mode):
     mollist : TYPE
         DESCRIPTION.
     savepath : TYPE
-        不能有中文路径！！！.
     mode : TYPE
         DESCRIPTION.
 
@@ -49,9 +48,9 @@ def draw_molb(got_ms2,mollist,savepath,mode):
                 name = str(fw[j])
                 d = rdMolDraw2D.MolDraw2DCairo(500, 400)
                 hit_bonds = good_bonds[j]
-                fmol = Chem.FragmentOnBonds(test_mol,hit_bonds) #断裂键
+                fmol = Chem.FragmentOnBonds(test_mol,hit_bonds) 
                 try:
-                    frag_mols = Chem.GetMolFrags(fmol,asMols=True) #提取碎片分子(剔除键后) 
+                    frag_mols = Chem.GetMolFrags(fmol,asMols=True) 
                 except Exception as e:
                     print(e)
                     continue

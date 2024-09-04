@@ -53,7 +53,7 @@ def API(project_path,k,thresh,dbparams,mode='+'):
                 rankid = [str(int(j))+'_'+str(i) for i,j in enumerate(list(x_0['ID']))]
                 x_0.insert(0,'ID_Rank',rankid)
                 x_1 = x[1]# matched fragments
-                x_0 = x_0[[len(_)>0 for _ in x_1]] # 剔除未匹配到碎片的candidates
+                x_0 = x_0[[len(_)>0 for _ in x_1]] 
                 x_1 = [_ for _ in x_1 if len(_)>0][:k]
                 spectra = x_0.iloc[:k,:].copy()
                 write_fragments = []
@@ -61,7 +61,7 @@ def API(project_path,k,thresh,dbparams,mode='+'):
                     fragments = ''
                     interactions = x_1[n][1].copy()
                     infos = x_1[n][0].copy()
-                    if not len(x_1[n][1]) > 0: # 未匹配到中性丢失
+                    if not len(x_1[n][1]) > 0: 
                         write_fragments.append(fragments)
                         continue
                     fm_map = {a:b for a,b in zip(infos['ID'],infos['formula']) if a in list(interactions['Source_ID'])+list(interactions['Target_ID'])}

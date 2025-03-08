@@ -35,6 +35,4 @@ Liquid chromatography coupled with tandem mass spectrometry (LC-MS) is a powerfu
 Should you have any questions, please feel free to contact the author of the manuscript, Mr. Bingjie Zhu (zhubj@zju.edu.cn).
 
 ## References
-Zhu B, Li Z, Jin Z, Zhong Y, Lv T, Ge Z, Li H, Wang T, Lin Y, Liu H, Ma T, Wang S, Liao J, Fan X. Knowledge-based in silico fragmentation and annotation of mass spectra for natural products with MassKG. Comput Struct Biotechnol J. 2024 Sep 7;23:3327-3341. [doi: 10.1016/j.csbj.2024.09.001
-        
-        ]([https://doi.org/10.1016/j.csbj.2024.09.001](https://www.sciencedirect.com/science/article/pii/S2001037024002897))
+Zhu B, Li Z, Jin Z, Zhong Y, Lv T, Ge Z, Li H, Wang T, Lin Y, Liu H, Ma T, Wang S, Liao J, Fan X. Knowledge-based in silico fragmentation and annotation of mass spectra for natural products with MassKG. Comput Struct Biotechnol J. 2024 Sep 7;23:3327-3341. [doi: 10.1016/j.csbj.2024.09.001](https://www.sciencedirect.com/science/article/pii/S2001037024002897)

@@ -1,6 +1,6 @@
 
 
-# MassKG v1.0 <img src='images/icon.png' align="right" height="200" /></a>
+# MassKG v1.0 
 
 #  **Knowledge-based _In Silico_ Fragmentation and Annotation of Mass Spectra for Natural Products with MassKG**
 
